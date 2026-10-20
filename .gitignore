@@ -1,4 +1,22 @@
 # Distribution / packaging
 node_modules
 
+# Local secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Temporary cookies, sessions, and logs
+cookies*.txt
+cookie*.txt
+*.cookies
+.cookies*
+.session*
+session*.json
+session*.txt
+sessions/
+*.log
+
 
