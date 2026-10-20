@@ -1,9 +1,55 @@
 const express = require('express');
+const axios = require('axios');
 const {randomBytes, scryptSync} = require('crypto');
 let books = require("./booksdb.js");
 let isValid = require("./auth_users.js").isValid;
 let users = require("./auth_users.js").users;
 const public_users = express.Router();
+
+// Client helpers are called independently, never from the routes they request.
+const bookClient = axios.create({
+  baseURL: process.env.BOOK_API_BASE_URL || 'http://127.0.0.1:5000',
+  timeout: 5000
+});
+
+async function getAllBooksAsync() {
+  try {
+    const response = await bookClient.get('/');
+    return response.data;
+  } catch (error) {
+    error.message = `Unable to retrieve all books: ${error.message}`;
+    throw error;
+  }
+}
+
+function getBookByISBNAsync(isbn) {
+  return bookClient.get(`/isbn/${encodeURIComponent(isbn)}`)
+    .then(response => response.data)
+    .catch(error => {
+      error.message = `Unable to retrieve book by ISBN: ${error.message}`;
+      throw error;
+    });
+}
+
+async function getBooksByAuthorAsync(author) {
+  try {
+    const response = await bookClient.get(`/author/${encodeURIComponent(author)}`);
+    return response.data;
+  } catch (error) {
+    error.message = `Unable to retrieve books by author: ${error.message}`;
+    throw error;
+  }
+}
+
+async function getBooksByTitleAsync(title) {
+  try {
+    const response = await bookClient.get(`/title/${encodeURIComponent(title)}`);
+    return response.data;
+  } catch (error) {
+    error.message = `Unable to retrieve books by title: ${error.message}`;
+    throw error;
+  }
+}
 
 
 public_users.post("/register", (req,res) => {
@@ -70,3 +116,7 @@ public_users.get('/review/:isbn',function (req, res) {
 });
 
 module.exports.general = public_users;
+module.exports.getAllBooksAsync = getAllBooksAsync;
+module.exports.getBookByISBNAsync = getBookByISBNAsync;
+module.exports.getBooksByAuthorAsync = getBooksByAuthorAsync;
+module.exports.getBooksByTitleAsync = getBooksByTitleAsync;
